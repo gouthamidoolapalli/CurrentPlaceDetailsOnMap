@@ -2,11 +2,13 @@ package com.example.currentplacedetailsonmap;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.FloatMath;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -29,6 +31,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.text.DecimalFormat;
 
 /**
  * An activity that displays a map showing places around the device's current location.
@@ -190,11 +194,21 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
                 // Inflate the layouts for the info window, title and snippet.
                 View infoWindow = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
 
+                LatLng selectedPosition = marker.getPosition();
+                Location selectedLoc = new Location(LocationManager.GPS_PROVIDER);
+                selectedLoc.setLatitude(selectedPosition.latitude);
+                selectedLoc.setLongitude(selectedPosition.longitude);
+                double mts = mCurrentLocation.distanceTo(selectedLoc);
+                String mts_2 = String.format("%.2f", mts);
+                System.out.println("meterInDec result is::::"+mts_2);
+
+
+
                 TextView title = ((TextView) infoWindow.findViewById(R.id.title));
                 title.setText(marker.getTitle());
 
                 TextView snippet = ((TextView) infoWindow.findViewById(R.id.snippet));
-                snippet.setText(marker.getSnippet());
+                snippet.setText("The distance from current location is "+mts_2+"m");
 
                 return infoWindow;
             }
@@ -325,9 +339,9 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
                 @Override
                 public void onResult(@NonNull PlaceLikelihoodBuffer likelyPlaces) {
 
-//                    for (PlaceLikelihood placeLikelihood : likelyPlaces) { //For all nearby likelihood places neraby
-                    for(int i = 0; i<10;i++){ // only 10
-                        PlaceLikelihood placeLikelihood = likelyPlaces.get(i);
+                    for (PlaceLikelihood placeLikelihood : likelyPlaces) { //For all nearby likelihood places neraby
+//                    for(int i = 0; i<10;i++){ // only 10
+//                        PlaceLikelihood placeLikelihood = likelyPlaces.get(i);
                         // Add a marker for each place near the device's current location, with an
                         // info window showing place information.
                         String attributions = (String) placeLikelihood.getPlace().getAttributions();
@@ -371,4 +385,5 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
             mCurrentLocation = null;
         }
     }
+
 }
