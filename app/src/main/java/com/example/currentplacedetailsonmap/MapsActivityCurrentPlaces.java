@@ -250,7 +250,6 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
             polyline.remove();
             polyline = null;
         }
-//        marker.showInfoWindow();
         PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
         options.add(currentLoc);
         options.add(selectedPosition);
