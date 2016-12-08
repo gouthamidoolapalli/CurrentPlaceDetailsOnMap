@@ -1,6 +1,7 @@
 package com.example.currentplacedetailsonmap;
 
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -31,8 +32,11 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 /**
  * An activity that displays a map showing places around the device's current location.
@@ -71,6 +75,7 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
+    private Polyline polyline; //added
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +86,6 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
             mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
-
         // Retrieve the content view that renders the map.
         setContentView(R.layout.activity_maps);
         // Build the Play services client for use by the Fused Location Provider and the Places API.
@@ -211,9 +215,17 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
                 TextView snippet = ((TextView) infoWindow.findViewById(R.id.snippet));
                 snippet.setText("The distance from current location is "+mts_2+"m");
 
+                LatLng currentLoc = new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude());
+//                marker.hideInfoWindow();
+                addLineBetweenPoints(currentLoc, selectedPosition);
+
                 return infoWindow;
             }
+
+
         });
+
+
         /*
          * Set the map's camera position to the current location of the device.
          * If the previous state was saved, set the position to the saved state.
@@ -230,6 +242,21 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
+    }
+
+
+    private void addLineBetweenPoints(LatLng currentLoc, LatLng selectedPosition) {
+        if(polyline != null) {
+            polyline.remove();
+            polyline = null;
+        }
+//        marker.showInfoWindow();
+        PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
+        options.add(currentLoc);
+        options.add(selectedPosition);
+        polyline = mMap.addPolyline(options);
+
+        options = null;
     }
 
     /**
