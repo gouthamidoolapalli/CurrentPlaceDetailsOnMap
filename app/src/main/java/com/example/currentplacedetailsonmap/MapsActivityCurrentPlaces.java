@@ -1,13 +1,18 @@
 package com.example.currentplacedetailsonmap;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.FloatMath;
 import android.util.Log;
@@ -99,10 +104,21 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        if (mGoogleApiClient.isConnected()) {
-            getDeviceLocation();
+        System.out.println(":::::::in on resume::::::");
+        if(isGPSEnabled()) {
+            System.out.println(":::::::gps is enabled::::::");
+            if (mGoogleApiClient.isConnected()) {
+                System.out.println(":::::::mGoogleApiClient is connected::::::");
+                getDeviceLocation();
+            }
+            else{
+                System.out.println(":::::::mGoogleApiClient is about to get connected::::::");
+                mGoogleApiClient.connect();
+            }
+            updateMarkers();
+        }else{
+            System.out.println(":::::::gps is not enabled::::::");
         }
-        updateMarkers();
     }
 
     /**
@@ -271,6 +287,7 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
+
         createLocationRequest();
     }
 
@@ -295,6 +312,35 @@ public class MapsActivityCurrentPlaces extends AppCompatActivity implements
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
 
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+    }
+    private boolean isGPSEnabled()
+    {
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+
+            buildAlertMessageNoGps();
+            return false;
+        }else
+            return true;
+    }
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Yout GPS seems to be disabled, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
     /**
